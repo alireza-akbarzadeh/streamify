@@ -17,6 +17,9 @@ var (
 	ErrPasswordTooShort = errors.New("password must be at least 8 characters long")
 	// ErrPasswordTooWeak is returned when password lacks complexity
 	ErrPasswordTooWeak = errors.New("password must contain at least one uppercase letter, one lowercase letter, and one number")
+
+	// emailRegex is a stricter regex for email validation, compiled once
+	emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
 )
 
 // ValidateEmail checks if the string is a valid email address
@@ -26,8 +29,7 @@ func ValidateEmail(email string) error {
 		return ErrInvalidEmail
 	}
 
-	// Additional regex for stricter checking of the domain part
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	// Use the package-level compiled regex for stricter checking of the domain part
 	if !emailRegex.MatchString(utils.NormalizeEmail(email)) {
 		return ErrInvalidEmail
 	}

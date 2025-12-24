@@ -25,6 +25,7 @@ SELECT * FROM users WHERE email = $1 LIMIT 1;
 -- name: UpdateUserPassword :exec
 UPDATE users SET password_hash = $2 WHERE id = $1;
 
+-- name: UpdateUser :exec
 UPDATE users
 SET first_name = $2,
     last_name = $3,

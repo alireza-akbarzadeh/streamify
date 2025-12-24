@@ -3,12 +3,13 @@ package models
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/techies/streamify/internal/database"
 )
 
 // UserResponse omits password and password hash
 type UserResponse struct {
-	ID          string    `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	Username    string    `json:"username"`
 	FirstName   string    `json:"first_name"`
 	LastName    string    `json:"last_name"`
@@ -25,7 +26,7 @@ type UserResponse struct {
 
 func NewUserResponse(u *database.User) *UserResponse {
 	return &UserResponse{
-		ID:          u.ID.String(),
+		ID:          u.ID,
 		Username:    u.Username,
 		FirstName:   u.FirstName.String,
 		LastName:    u.LastName.String,
@@ -36,6 +37,7 @@ func NewUserResponse(u *database.User) *UserResponse {
 		AvatarUrl:   u.AvatarUrl.String,
 		Bio:         u.Bio.String,
 		PhoneNumber: u.PhoneNumber.String,
+		CreatedAt:   u.CreatedAt,
 		UpdatedAt:   u.UpdatedAt,
 	}
 }

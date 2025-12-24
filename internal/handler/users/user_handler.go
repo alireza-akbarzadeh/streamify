@@ -1,11 +1,9 @@
 package users
 
 import (
-	"time"
-
-	"github.com/google/uuid"
 	"github.com/techies/streamify/internal/app"
 	"github.com/techies/streamify/internal/database"
+	"github.com/techies/streamify/internal/models"
 )
 
 type UserHandler struct {
@@ -17,45 +15,32 @@ func NewUserHandler(app *app.AppConfig) *UserHandler {
 }
 
 // MapUserListToResponse handles slices of users efficiently
-func MapUserListToResponse(dbUsers []database.User) []UserResponse {
-	users := make([]UserResponse, len(dbUsers))
+func MapUserListToResponse(dbUsers []database.User) []models.UserResponse {
+	users := make([]models.UserResponse, len(dbUsers))
 	for i, u := range dbUsers {
 		users[i] = MapUserToResponse(u)
 	}
 	return users
 }
 
-func MapUserToResponse(u database.User) UserResponse {
-	return UserResponse{
+func MapUserToResponse(u database.User) models.UserResponse {
+	return models.UserResponse{
 		ID:          u.ID,
 		Username:    u.Username,
 		Email:       u.Email,
 		IsVerified:  u.IsVerified,
-		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:   u.UpdatedAt.Format(time.RFC3339),
+		CreatedAt:   u.CreatedAt,
+		UpdatedAt:   u.UpdatedAt,
 		Bio:         u.Bio.String,
 		PhoneNumber: u.PhoneNumber.String,
-		AvatarURL:   u.AvatarUrl.String,
+		AvatarUrl:   u.AvatarUrl.String,
 	}
 }
 
-// UserResponse is the public contract
-type UserResponse struct {
-	ID          uuid.UUID `json:"id"`
-	Username    string    `json:"username"`
-	Email       string    `json:"email"`
-	IsVerified  bool      `json:"is_verified"`
-	CreatedAt   string    `json:"created_at"`
-	UpdatedAt   string    `json:"updated_at"`
-	Bio         string    `json:"bio,omitempty"`
-	PhoneNumber string    `json:"phone_number,omitempty"`
-	AvatarURL   string    `json:"avatar_url,omitempty"`
-}
-
 type UserListResponse struct {
-	Users   []UserResponse `json:"users"`
-	Total   int64          `json:"total"`
-	Limit   int32          `json:"limit"`
-	Offset  int32          `json:"offset"`
-	HasMore bool           `json:"has_more"`
+	Users   []models.UserResponse `json:"users"`
+	Total   int64                 `json:"total"`
+	Limit   int32                 `json:"limit"`
+	Offset  int32                 `json:"offset"`
+	HasMore bool                  `json:"has_more"`
 }

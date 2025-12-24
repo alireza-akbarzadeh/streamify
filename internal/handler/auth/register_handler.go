@@ -53,16 +53,29 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	email := utils.NormalizeEmail(req.Email)
 
 	// Check availability
-	exists, _ := h.app.DB.GetUserByEmail(ctx, email)
+	exists, err := h.app.DB.GetUserByEmail(ctx, email)
+	if err != nil {
+		// Log the error and return 500 Internal Server Error
+		utils.RespondWithError(w, http.StatusInternalServerError, "Database error during registration", err)
+		return
+	}
 	if exists.ID != uuid.Nil {
 		utils.RespondWithError(w, http.StatusConflict, "Email already registered", nil)
 		return
 	}
 
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to hash password", err)
+		return
+	}
 
 	// Verification Logic
-	vToken, _ := token.GenerateSecureToken(32)
+	vToken, err := token.GenerateSecureToken(32)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate verification token", err)
+		return
+	}
 	vExpires := time.Now().Add(24 * time.Hour)
 
 	// Create User with NULL profile fields
