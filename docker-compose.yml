@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: streamify-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: streamify
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+      # Optional but recommended
+      PGDATA: /var/lib/postgresql/data/pgdata
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      # Persistent data
+      - postgres_data:/var/lib/postgresql/data
+
+      # Init scripts (sql or sh files)
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d scraper"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=768MB
+      -c work_mem=16MB
+      -c maintenance_work_mem=128MB
+      -c wal_buffers=16MB
+      -c log_statement=none
+      -c log_duration=on
+
+  # Optional admin UI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: streamify-pgadmin
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@local.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+
+    ports:
+      - "5050:80"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
