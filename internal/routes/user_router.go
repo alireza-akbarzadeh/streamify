@@ -11,6 +11,7 @@ func userRouter(h *handler.Handler) chi.Router {
 
 	r.Get("/", h.User.UserList)
 	r.Get("/{id}", h.User.GetUser)
+	r.Put("/{id}", h.User.UpdateProfile)
 	r.With(middleware.AdminOnly).Post("/{id}/lock", h.Auth.LockUser)
 	r.With(middleware.AdminOnly).Post("/{id}/unlock", h.Auth.UnLockUser)
 

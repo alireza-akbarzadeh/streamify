@@ -88,12 +88,16 @@ func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to rotate session", err)
 		return
 	}
+	ip := utils.GetClientIP(r)
+	IpAddress := utils.ToNullString(&ip)
+	userAgent := r.UserAgent()
+	UserAgent := utils.ToNullString(&userAgent)
 
 	_, err = h.app.DB.CreateSession(r.Context(), database.CreateSessionParams{
 		UserID:       session.UserID,
 		RefreshToken: newRefreshToken,
-		IpAddress:    utils.ToNullString(utils.GetClientIP(r)),
-		UserAgent:    utils.ToNullString(r.UserAgent()),
+		IpAddress:    IpAddress,
+		UserAgent:    UserAgent,
 		ExpiresAt:    time.Now().Add(RefreshTokenTTL),
 	})
 	if err != nil {

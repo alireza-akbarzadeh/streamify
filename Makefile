@@ -1,5 +1,6 @@
 swagger:
 	swag init --parseDependency --parseInternal -g cmd/main.go
+
 APP_NAME=streamify
 BIN_DIR=bin
 SRC_DIR=.
@@ -12,7 +13,8 @@ COVERAGE_OUT := $(COVERAGE_DIR)/coverage.out
 COVERAGE_HTML := $(COVERAGE_DIR)/coverage.html
 
 .PHONY: build run migrate generate dev \
-        test test-v test-race test-cover test-cover-html clean
+	test test-v test-race test-cover test-cover-html clean \
+	vendor tidy-vendor build-vendor test-vendor
 
 # Build the app
 build:
@@ -55,22 +57,20 @@ test-cover-html: test-cover
 clean:
 	rm -rf $(COVERAGE_DIR) $(BIN_DIR)
 
-
 # Sync vendor directory with go.mod/go.sum
 vendor:
-    go mod vendor
-
+	go mod vendor
 
 # Tidy and vendor in one step
 tidy-vendor:
-    go mod tidy
-    go mod vendor
-	
+	go mod tidy
+	go mod vendor
+
 # Build using vendor directory
 build-vendor:
-    @mkdir -p $(BIN_DIR)
-    GOFLAGS=-mod=vendor go build -o $(BIN_DIR)/$(APP_NAME) cmd/main.go	
+	@mkdir -p $(BIN_DIR)
+	GOFLAGS=-mod=vendor go build -o $(BIN_DIR)/$(APP_NAME) cmd/main.go
 
 # Test using vendor directory
 test-vendor:
-    GOFLAGS=-mod=vendor go test ./...	
+	GOFLAGS=-mod=vendor go test ./...
