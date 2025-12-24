@@ -12,14 +12,15 @@ import (
 
 // UserList returns a paginated list of users with optional search.
 // @Summary      List users
-// @Description  Get a paginated list of users. Supports search by username and email.
+// @Description  Get a paginated list of users. Supports search by username, email, and phone number.
 // @Tags         Users
 // @Accept       json
 // @Produce      json
-// @Param        limit     query     int     false  "Max results per page (default 20, max 100)"
-// @Param        offset    query     int     false  "Offset for pagination (default 0)"
-// @Param        username  query     string  false  "Search by username (partial match)"
-// @Param        email     query     string  false  "Search by email (partial match)"
+// @Param        limit         query     int     false  "Max results per page (default 20, max 100)"
+// @Param        offset        query     int     false  "Offset for pagination (default 0)"
+// @Param        username      query     string  false  "Search by username (partial match)"
+// @Param        email         query     string  false  "Search by email (partial match)"
+// @Param        phone_number  query     string  false  "Search by phone number (partial match)"
 // @Success      200       {object}  users.UserListResponse
 // @Failure      401       {object}  utils.ErrorResponse
 // @Failure      500       {object}  utils.ErrorResponse
@@ -38,13 +39,15 @@ func (h *UserHandler) UserList(w http.ResponseWriter, r *http.Request) {
 
 	username := r.URL.Query().Get("username")
 	email := r.URL.Query().Get("email")
+	phoneNumber := r.URL.Query().Get("phone_number")
 
 	// 2. Prepare Database Arguments
 	arg := database.GetUsersParams{
-		Limit:          int32(limit),
-		Offset:         int32(offset),
-		SearchUsername: sql.NullString{String: username, Valid: username != ""},
-		SearchEmail:    sql.NullString{String: email, Valid: email != ""},
+		Limit:             int32(limit),
+		Offset:            int32(offset),
+		SearchUsername:    sql.NullString{String: username, Valid: username != ""},
+		SearchEmail:       sql.NullString{String: email, Valid: email != ""},
+		SearchPhoneNumber: sql.NullString{String: phoneNumber, Valid: phoneNumber != ""},
 	}
 
 	// 3. Fetch Data
@@ -56,8 +59,9 @@ func (h *UserHandler) UserList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	total, err := h.app.DB.CountUsers(ctx, database.CountUsersParams{
-		SearchUsername: arg.SearchUsername,
-		SearchEmail:    arg.SearchEmail,
+		SearchUsername:    arg.SearchUsername,
+		SearchEmail:       arg.SearchEmail,
+		SearchPhoneNumber: arg.SearchPhoneNumber,
 	})
 	if err != nil {
 		logger.Error(ctx, "UserList: failed to count users", err, "args", arg)

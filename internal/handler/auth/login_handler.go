@@ -96,11 +96,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip := utils.GetClientIP(r)
+	IpAddress := utils.ToNullString(&ip)
+	userAgent := r.UserAgent()
+	UserAgent := utils.ToNullString(&userAgent)
+
 	_, err = h.app.DB.CreateSession(ctx, database.CreateSessionParams{
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
-		IpAddress:    utils.ToNullString(utils.NormalizeIP(r.RemoteAddr)),
-		UserAgent:    utils.ToNullString(r.UserAgent()),
+		IpAddress:    IpAddress,
+		UserAgent:    UserAgent,
 		ExpiresAt:    time.Now().Add(token.RefreshTokenTTL),
 	})
 	if err != nil {

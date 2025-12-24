@@ -27,24 +27,29 @@ func MapUserListToResponse(dbUsers []database.User) []UserResponse {
 
 func MapUserToResponse(u database.User) UserResponse {
 	return UserResponse{
-		ID:         u.ID,
-		Username:   u.Username,
-		Email:      u.Email,
-		IsVerified: u.IsVerified, // Updated to match your logic
-		// Using RFC3339 is standard for modern APIs
-		CreatedAt: u.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: u.UpdatedAt.Format(time.RFC3339),
+		ID:          u.ID,
+		Username:    u.Username,
+		Email:       u.Email,
+		IsVerified:  u.IsVerified,
+		CreatedAt:   u.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   u.UpdatedAt.Format(time.RFC3339),
+		Bio:         u.Bio.String,
+		PhoneNumber: u.PhoneNumber.String,
+		AvatarURL:   u.AvatarUrl.String,
 	}
 }
 
 // UserResponse is the public contract
 type UserResponse struct {
-	ID         uuid.UUID `json:"id"`
-	Username   string    `json:"username"`
-	Email      string    `json:"email"`
-	IsVerified bool      `json:"is_verified"`
-	CreatedAt  string    `json:"created_at"`
-	UpdatedAt  string    `json:"updated_at"`
+	ID          uuid.UUID `json:"id"`
+	Username    string    `json:"username"`
+	Email       string    `json:"email"`
+	IsVerified  bool      `json:"is_verified"`
+	CreatedAt   string    `json:"created_at"`
+	UpdatedAt   string    `json:"updated_at"`
+	Bio         string    `json:"bio,omitempty"`
+	PhoneNumber string    `json:"phone_number,omitempty"`
+	AvatarURL   string    `json:"avatar_url,omitempty"`
 }
 
 type UserListResponse struct {

@@ -9,12 +9,9 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/mail"
 	"os"
-	"regexp"
 	"strings"
 	"time"
-	"unicode"
 
 	"crypto/rand"
 	"encoding/base64"
@@ -26,61 +23,6 @@ import (
 
 type ErrorResponse struct {
 	Error string `json:"error"`
-}
-
-var (
-	// ErrInvalidEmail is returned when email format is incorrect
-	ErrInvalidEmail = errors.New("invalid email address format")
-	// ErrPasswordTooShort is returned when password is less than 8 characters
-	ErrPasswordTooShort = errors.New("password must be at least 8 characters long")
-	// ErrPasswordTooWeak is returned when password lacks complexity
-	ErrPasswordTooWeak = errors.New("password must contain at least one uppercase letter, one lowercase letter, and one number")
-)
-
-// ValidateEmail checks if the string is a valid email address
-func ValidateEmail(email string) error {
-	_, err := mail.ParseAddress(email)
-	if err != nil {
-		return ErrInvalidEmail
-	}
-
-	// Additional regex for stricter checking of the domain part
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-	if !emailRegex.MatchString(NormalizeEmail(email)) {
-		return ErrInvalidEmail
-	}
-
-	return nil
-}
-
-// ValidatePassword checks for length and complexity
-func ValidatePassword(password string) error {
-	if len(password) < 8 {
-		return ErrPasswordTooShort
-	}
-
-	var (
-		hasUpper bool
-		hasLower bool
-		hasDigit bool
-	)
-
-	for _, char := range password {
-		switch {
-		case unicode.IsUpper(char):
-			hasUpper = true
-		case unicode.IsLower(char):
-			hasLower = true
-		case unicode.IsDigit(char):
-			hasDigit = true
-		}
-	}
-
-	if !hasUpper || !hasLower || !hasDigit {
-		return ErrPasswordTooWeak
-	}
-
-	return nil
 }
 
 // GenerateRandomString returns a securely generated random string of the given length.
@@ -199,11 +141,16 @@ func NormalizeEmail(email string) string {
 }
 
 // toNullString converts a string to sql.NullString
-func ToNullString(s string) sql.NullString {
-	if s == "" {
+func ToNullString(s *string) sql.NullString {
+	if s == nil {
+		// This tells the DB "don't change this value"
+		// when used with COALESCE in your SQL.
 		return sql.NullString{Valid: false}
 	}
-	return sql.NullString{String: s, Valid: true}
+	return sql.NullString{
+		String: *s,
+		Valid:  true,
+	}
 }
 
 // normalizeIP strips port if present
