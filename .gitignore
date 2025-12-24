@@ -36,3 +36,4 @@ go.work.sum
 
 /coverage
 /vendor
+.DS_Store
