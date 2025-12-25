@@ -90,7 +90,6 @@ type UpdateUserRoleRequest struct {
 // @Failure      500   {object}  utils.ErrorResponse
 // @Security     BearerAuth
 // @Router       /api/v1/users/{id}/role [put]
-
 func (h *UserHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

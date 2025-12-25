@@ -94,6 +94,17 @@ definitions:
       phone_number:
         type: string
     type: object
+  internal_handler_users.UpdateUserRoleRequest:
+    properties:
+      role:
+        enum:
+        - customer
+        - admin
+        - owner
+        type: string
+    required:
+    - role
+    type: object
   internal_handler_users.UserListResponse:
     properties:
       has_more:
@@ -466,6 +477,53 @@ paths:
       security:
       - BearerAuth: []
       summary: Lock user account
+      tags:
+      - Users
+  /api/v1/users/{id}/role:
+    put:
+      consumes:
+      - application/json
+      description: Allows an admin to update the role of any user.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Role update details
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/internal_handler_users.UpdateUserRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user role
       tags:
       - Users
   /api/v1/users/{id}/unlock:
