@@ -7,6 +7,7 @@ import (
 	"github.com/techies/streamify/internal/database"
 	"github.com/techies/streamify/internal/logger"
 	"github.com/techies/streamify/internal/middleware"
+	"github.com/techies/streamify/internal/models"
 	"github.com/techies/streamify/internal/utils"
 )
 
@@ -18,6 +19,19 @@ type UpdateProfileRequest struct {
 	PhoneNumber *string `json:"phone_number"`
 }
 
+// UpdateProfile updates the authenticated user's profile information.
+// @Summary      Update user profile
+// @Description  Update the profile details of the currently authenticated user.
+// @Tags         Users
+// @Accept       json
+// @Produce      json
+// @Param        profile  body      UpdateProfileRequest  true  "Profile update details"
+// @Success      200      {object}  models.UserResponse
+// @Failure      400      {object}  utils.ErrorResponse
+// @Failure      401      {object}  utils.ErrorResponse
+// @Failure      500      {object}  utils.ErrorResponse
+// @Security     BearerAuth
+// @Router       /api/v1/users/{id} [put]
 func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
@@ -40,7 +54,7 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	// 3. Database Execution
 	// Using the *string version of ToNullString
-	err = h.app.DB.UpdateUserProfile(ctx, database.UpdateUserProfileParams{
+	err = h.App.DB.UpdateUserProfile(ctx, database.UpdateUserProfileParams{
 		ID:          userID,
 		FirstName:   utils.ToNullString(req.FirstName),
 		LastName:    utils.ToNullString(req.LastName),
@@ -57,12 +71,12 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 
 	// 4. Return Updated State
 	// Re-fetching ensures the client has the absolute 'truth' from the DB
-	updatedUser, err := h.app.DB.GetUserById(ctx, userID)
+	updatedUser, err := h.App.DB.GetUserById(ctx, userID)
 	if err != nil {
 		logger.Error(ctx, "UpdateProfile: failed to fetch updated user", err, "user_id", userID)
 		utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Profile updated"})
 		return
 	}
 
-	utils.RespondWithJSON(w, http.StatusOK, MapUserToResponse(updatedUser))
+	utils.RespondWithJSON(w, http.StatusOK, models.UserResponse(MapUserToResponse(updatedUser)))
 }

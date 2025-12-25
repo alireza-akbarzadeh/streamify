@@ -42,7 +42,7 @@ type LoginResponse struct {
 // @Failure      400          {object}  utils.ErrorResponse
 // @Failure      401          {object}  utils.ErrorResponse
 // @Failure      500          {object}  utils.ErrorResponse
-// @Router       /auth/login [post]
+// @Router       /api/v1/auth/login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req LoginRequest
@@ -52,7 +52,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.app.DB.GetUserByEmail(ctx, req.Email)
+	user, err := h.App.DB.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			logger.Warn(ctx, "Login failed: user not found", "email", req.Email)
@@ -82,13 +82,6 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := utils.GenerateToken(user.ID, token.AccessTokenTTL, h.app.JWTSecret)
-	if err != nil {
-		logger.Error(ctx, "Failed to generate access token", err, "user_id", user.ID)
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate access token", err)
-		return
-	}
-
 	refreshToken, err := token.GenerateSecureToken(token.RefreshTokenLen)
 	if err != nil {
 		logger.Error(ctx, "Failed to generate refresh token", err, "user_id", user.ID)
@@ -101,7 +94,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	userAgent := r.UserAgent()
 	UserAgent := utils.ToNullString(&userAgent)
 
-	_, err = h.app.DB.CreateSession(ctx, database.CreateSessionParams{
+	session, err := h.App.DB.CreateSession(ctx, database.CreateSessionParams{
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
 		IpAddress:    IpAddress,
@@ -111,6 +104,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Error(ctx, "Failed to save session", err, "user_id", user.ID)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to save session", err)
+		return
+	}
+
+	accessToken, err := utils.GenerateToken(user.ID, session.ID, token.AccessTokenTTL, h.App.JWTSecret)
+	if err != nil {
+		logger.Error(ctx, "Failed to generate access token", err, "user_id", user.ID)
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate access token", err)
 		return
 	}
 

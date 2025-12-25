@@ -7,11 +7,11 @@ import (
 )
 
 type UserHandler struct {
-	app *app.AppConfig
+	App *app.AppConfig
 }
 
 func NewUserHandler(app *app.AppConfig) *UserHandler {
-	return &UserHandler{app: app}
+	return &UserHandler{App: app}
 }
 
 // MapUserListToResponse handles slices of users efficiently

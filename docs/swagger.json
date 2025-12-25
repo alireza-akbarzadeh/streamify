@@ -16,165 +16,9 @@
         "version": "1.0"
     },
     "host": "localhost:8080",
-    "basePath": "/api/v1",
+    "basePath": "/",
     "paths": {
-        "/api/v1/auth/logout-all": {
-            "post": {
-                "description": "Revoke all sessions and clear current refresh token",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Authentication"
-                ],
-                "summary": "Logout from all devices",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/users": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a paginated list of users. Supports search by username and email.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "List users",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Max results per page (default 20, max 100)",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Offset for pagination (default 0)",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search by username (partial match)",
-                        "name": "username",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Search by email (partial match)",
-                        "name": "email",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handler_users.UserListResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/users/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get a single user by their unique ID.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Get user by ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID (UUID)",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/internal_handler_users.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/login": {
+        "/api/v1/auth/login": {
             "post": {
                 "description": "Authenticate user and return JWT access token + refresh token cookie",
                 "consumes": [
@@ -226,8 +70,13 @@
                 }
             }
         },
-        "/auth/logout": {
+        "/api/v1/auth/logout": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Invalidate the current session and clear refresh token cookie",
                 "produces": [
                     "application/json"
@@ -249,7 +98,74 @@
                 }
             }
         },
-        "/auth/register": {
+        "/api/v1/auth/logout-all": {
+            "post": {
+                "description": "Revoke all sessions and clear current refresh token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout from all devices",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "description": "Validate and rotate refresh token, issue a new access token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh access token",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
             "post": {
                 "description": "Register a new user account",
                 "consumes": [
@@ -301,7 +217,7 @@
                 }
             }
         },
-        "/auth/verify": {
+        "/api/v1/auth/verify": {
             "get": {
                 "description": "Verifies a user's email using a verification token and marks the user as verified",
                 "consumes": [
@@ -324,10 +240,11 @@
                     }
                 ],
                 "responses": {
-                    "303": {
-                        "description": "Redirects to frontend with verification status",
+                    "200": {
+                        "description": "Email verified successfully",
                         "schema": {
-                            "type": "string"
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     },
                     "400": {
@@ -351,7 +268,270 @@
                 }
             }
         },
-        "/users/{id}/lock": {
+        "/api/v1/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a paginated list of users. Supports search by username, email, and phone number.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "List users",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Max results per page (default 20, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by username (partial match)",
+                        "name": "username",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by email (partial match)",
+                        "name": "email",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by phone number (partial match)",
+                        "name": "phone_number",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler_users.UserListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/old-soft-deleted": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes from the database all users who were previously soft-deleted and are eligible for permanent deletion (e.g., deleted for a certain period).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Permanently delete old soft-deleted users",
+                "responses": {
+                    "200": {
+                        "description": "Old soft-deleted users permanently deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to permanently delete old soft-deleted users",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a single user by their unique ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_models.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the profile details of the currently authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "description": "Profile update details",
+                        "name": "profile",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler_users.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_models.UserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks the authenticated user as deleted (soft delete). The user will no longer be able to log in, but their data is retained.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Soft-delete the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid user ID",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete user",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/users/{id}/lock": {
             "post": {
                 "security": [
                     {
@@ -403,7 +583,7 @@
                 }
             }
         },
-        "/users/{id}/unlock": {
+        "/api/v1/users/{id}/unlock": {
             "post": {
                 "security": [
                     {
@@ -460,6 +640,12 @@
         "github_com_techies_streamify_internal_models.UserResponse": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -481,6 +667,9 @@
                 "last_name": {
                     "type": "string"
                 },
+                "phone_number": {
+                    "type": "string"
+                },
                 "status": {
                     "type": "string"
                 },
@@ -488,12 +677,6 @@
                     "type": "string"
                 },
                 "username": {
-                    "type": "string"
-                },
-                "verification_expires_at": {
-                    "type": "string"
-                },
-                "verification_token": {
                     "type": "string"
                 }
             }
@@ -537,22 +720,12 @@
             "type": "object",
             "required": [
                 "email",
-                "first_name",
-                "last_name",
                 "password",
                 "username"
             ],
             "properties": {
                 "email": {
                     "type": "string"
-                },
-                "first_name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "last_name": {
-                    "type": "string",
-                    "minLength": 1
                 },
                 "password": {
                     "type": "string",
@@ -561,6 +734,26 @@
                 "username": {
                     "type": "string",
                     "minLength": 3
+                }
+            }
+        },
+        "internal_handler_users.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone_number": {
+                    "type": "string"
                 }
             }
         },
@@ -582,38 +775,15 @@
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/internal_handler_users.UserResponse"
+                        "$ref": "#/definitions/github_com_techies_streamify_internal_models.UserResponse"
                     }
-                }
-            }
-        },
-        "internal_handler_users.UserResponse": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "is_verified": {
-                    "type": "boolean"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         }
     },
     "securityDefinitions": {
         "BearerAuth": {
-            "description": "Type \"Bearer\" followed by a space and then your token.",
+            "description": "Please enter token in the format \"Bearer \u003ctoken\u003e\"",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

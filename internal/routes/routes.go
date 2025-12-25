@@ -49,7 +49,25 @@ func SetupRoutes(h *handler.Handler, cfg *app.AppConfig) http.Handler {
 	// Public Infrastructure
 	// --- 4. PUBLIC / INFRA ROUTES ---
 	r.Get("/health", h.HandleHealthz)
-	r.Get("/swagger/*", httpSwagger.WrapHandler)
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.AfterScript(`
+		window.onload = function() {
+			const timer = setInterval(function() {
+				const ui = window.ui;
+				if (ui) {
+					clearInterval(timer);
+					const originalRequestInterceptor = ui.getConfigs().requestInterceptor || (r => r);
+					ui.getConfigs().requestInterceptor = (req) => {
+						if (req.headers['Authorization'] && !req.headers['Authorization'].startsWith('Bearer ')) {
+							req.headers['Authorization'] = 'Bearer ' + req.headers['Authorization'];
+						}
+						return originalRequestInterceptor(req);
+					};
+				}
+			}, 100);
+		};
+		`),
+	))
 
 	// --- 5. VERSIONED API ---
 	r.Route("/api/v1", func(r chi.Router) {
@@ -61,7 +79,7 @@ func SetupRoutes(h *handler.Handler, cfg *app.AppConfig) http.Handler {
 
 		// Protected Domain
 		r.Group(func(r chi.Router) {
-			r.Use(internalMiddleware.AuthMiddleware(cfg.JWTSecret))
+			r.Use(internalMiddleware.AuthMiddleware(h.App.DB, cfg.JWTSecret))
 			r.Mount("/users", userRouter(h))
 		})
 	})

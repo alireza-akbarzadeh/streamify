@@ -40,12 +40,12 @@ func bootstrap() error {
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      localhost:8080
-// @BasePath  /api/v1
+// @BasePath  /
 
 // @securityDefinitions.apikey  BearerAuth
 // @in                          header
 // @name                        Authorization
-// @description                 Type "Bearer" followed by a space and then your token.
+// @description                 Please enter token in the format "Bearer <token>"
 
 func main() {
 	_ = godotenv.Load()

@@ -126,9 +126,10 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 // Internal helper for token generation
-func GenerateToken(userID uuid.UUID, duration time.Duration, JWTSecret string) (string, error) {
+func GenerateToken(userID uuid.UUID, sessionID uuid.UUID, duration time.Duration, JWTSecret string) (string, error) {
 	claims := jwt.MapClaims{
 		"sub": userID.String(),
+		"sid": sessionID.String(),
 		"exp": time.Now().Add(duration).Unix(),
 		"iat": time.Now().Unix(),
 	}

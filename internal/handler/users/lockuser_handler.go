@@ -1,4 +1,4 @@
-package auth
+package users
 
 import (
 	"net/http"
@@ -19,8 +19,8 @@ import (
 // @Failure      400  {object}  utils.ErrorResponse
 // @Failure      500  {object}  utils.ErrorResponse
 // @Security     BearerAuth
-// @Router       /users/{id}/lock [post]
-func (h *AuthHandler) LockUser(w http.ResponseWriter, r *http.Request) {
+// @Router       /api/v1/users/{id}/lock [post]
+func (h *UserHandler) LockUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
 	uid, err := uuid.Parse(id)
@@ -29,14 +29,14 @@ func (h *AuthHandler) LockUser(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid user ID")
 		return
 	}
-	err = h.app.DB.LockUser(ctx, uid)
+	err = h.App.DB.LockUser(ctx, uid)
 	if err != nil {
 		logger.Error(ctx, "LockUser: failed to lock user", err, "user_id", uid)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to lock user", err)
 		return
 	}
 	// Invalidate all sessions for this user
-	if err := h.app.DB.DeleteAllUserSessions(ctx, uid); err != nil {
+	if err := h.App.DB.DeleteAllUserSessions(ctx, uid); err != nil {
 		logger.Error(ctx, "LockUser: failed to delete user sessions", err, "user_id", uid)
 		// You may want to continue, or return an error depending on your policy
 	}
@@ -54,8 +54,8 @@ func (h *AuthHandler) LockUser(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  utils.ErrorResponse
 // @Failure      500  {object}  utils.ErrorResponse
 // @Security     BearerAuth
-// @Router       /users/{id}/unlock [post]
-func (h *AuthHandler) UnLockUser(w http.ResponseWriter, r *http.Request) {
+// @Router       /api/v1/users/{id}/unlock [post]
+func (h *UserHandler) UnLockUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	id := chi.URLParam(r, "id")
 	uid, err := uuid.Parse(id)
@@ -64,7 +64,7 @@ func (h *AuthHandler) UnLockUser(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusBadRequest, "Invalid user ID")
 		return
 	}
-	err = h.app.DB.UnlockUser(ctx, uid)
+	err = h.App.DB.UnlockUser(ctx, uid)
 	if err != nil {
 		logger.Error(ctx, "UnLockUser: failed to unlock user", err, "user_id", uid)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to unlock user", err)
