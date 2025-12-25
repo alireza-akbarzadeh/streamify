@@ -19,6 +19,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"github.com/techies/streamify/internal/database"
 )
 
 type ErrorResponse struct {
@@ -139,12 +140,27 @@ func WriteJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 // Internal helper for token generation
-func GenerateToken(userID uuid.UUID, sessionID uuid.UUID, duration time.Duration, JWTSecret string) (string, error) {
+func GenerateToken(
+	userID uuid.UUID,
+	sessionID uuid.UUID,
+	duration time.Duration,
+	JWTSecret string,
+	role database.UserRole,
+	firstName string,
+	lastName string,
+	phoneNumber string,
+	email string,
+) (string, error) {
 	claims := jwt.MapClaims{
-		"sub": userID.String(),
-		"sid": sessionID.String(),
-		"exp": time.Now().Add(duration).Unix(),
-		"iat": time.Now().Unix(),
+		"sub":          userID.String(),
+		"sid":          sessionID.String(),
+		"exp":          time.Now().Add(duration).Unix(),
+		"iat":          time.Now().Unix(),
+		"role":         role,
+		"first_name":   firstName,
+		"last_name":    lastName,
+		"phone_number": phoneNumber,
+		"email":        email,
 	}
 	return jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(JWTSecret))
 }

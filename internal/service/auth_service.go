@@ -158,7 +158,7 @@ func (s *AuthService) Login(ctx context.Context, params LoginParams) (LoginResul
 		}
 	}
 
-	accessToken, err := utils.GenerateToken(user.ID, session.ID, token.AccessTokenTTL, s.cfg.JWTSecret)
+	accessToken, err := utils.GenerateToken(user.ID, session.ID, token.AccessTokenTTL, s.cfg.JWTSecret, user.Role, user.FirstName.String, user.LastName.String, user.PhoneNumber.String, user.Email)
 	if err != nil {
 		return LoginResult{}, &utils.AppError{
 			Code:    http.StatusInternalServerError,

@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/a-h/templ v0.3.960 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.12 // indirect
 	github.com/go-openapi/swag/conv v0.25.4 // indirect
 	github.com/go-openapi/swag/jsonname v0.25.4 // indirect

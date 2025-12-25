@@ -1,5 +1,17 @@
 basePath: /
 definitions:
+  github_com_techies_streamify_internal_database.UserRole:
+    enum:
+    - user
+    - customer
+    - admin
+    - owner
+    type: string
+    x-enum-varnames:
+    - UserRoleUser
+    - UserRoleCustomer
+    - UserRoleAdmin
+    - UserRoleOwner
   github_com_techies_streamify_internal_models.UserResponse:
     properties:
       avatar_url:
@@ -22,6 +34,8 @@ definitions:
         type: string
       phone_number:
         type: string
+      role:
+        $ref: '#/definitions/github_com_techies_streamify_internal_database.UserRole'
       status:
         type: string
       updated_at:

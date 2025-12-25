@@ -96,9 +96,24 @@ func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create new session", err)
 		return
 	}
-
+	user, err := h.App.DB.GetUserById(r.Context(), session.UserID)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusUnauthorized, "User not found", err)
+		return
+	}
 	// 6. Generate new access token
-	newAccessToken, err := utils.GenerateToken(session.UserID, newSession.ID, AccessTokenTTL, h.App.JWTSecret)
+	newAccessToken, err := utils.GenerateToken(
+		user.ID,
+		newSession.ID,
+		AccessTokenTTL,
+		h.App.JWTSecret,
+		user.Role,
+		user.FirstName.String,
+		user.LastName.String,
+		user.PhoneNumber.String,
+		user.Email,
+	)
+
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate access token", err)
 		return

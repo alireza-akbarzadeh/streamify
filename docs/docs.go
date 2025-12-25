@@ -643,6 +643,21 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_techies_streamify_internal_database.UserRole": {
+            "type": "string",
+            "enum": [
+                "user",
+                "customer",
+                "admin",
+                "owner"
+            ],
+            "x-enum-varnames": [
+                "UserRoleUser",
+                "UserRoleCustomer",
+                "UserRoleAdmin",
+                "UserRoleOwner"
+            ]
+        },
         "github_com_techies_streamify_internal_models.UserResponse": {
             "type": "object",
             "properties": {
@@ -675,6 +690,9 @@ const docTemplate = `{
                 },
                 "phone_number": {
                     "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/github_com_techies_streamify_internal_database.UserRole"
                 },
                 "status": {
                     "type": "string"

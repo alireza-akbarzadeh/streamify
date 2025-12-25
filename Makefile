@@ -1,3 +1,6 @@
+# Run Air for live reload development
+watch:
+	air
 swagger:
 	swag init --parseDependency --parseInternal -g cmd/main.go
 
