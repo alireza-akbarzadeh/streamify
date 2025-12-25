@@ -1,7 +1,6 @@
 package users
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -34,19 +33,13 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, err := h.App.DB.GetUserById(ctx, userID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			logger.Warn(ctx, "GetUser: user not found", "user_id", userID)
-			utils.RespondWithError(w, http.StatusNotFound, "User not found", nil)
-			return
-		}
-		logger.Error(ctx, "GetUser: database error", err, "user_id", userID)
-		utils.RespondWithError(w, http.StatusInternalServerError, "Database error", err)
+	user, appErr := h.Service.GetUser(ctx, userID)
+	if appErr != nil {
+		utils.RespondWithError(w, appErr.Code, appErr.Message, appErr.Err)
 		return
 	}
 
 	logger.Info(ctx, "GetUser: user fetched successfully", "user_id", userID)
-	response := MapUserToResponse(dbUser)
+	response := MapUserToResponse(user)
 	utils.RespondWithJSON(w, http.StatusOK, models.UserResponse(response))
 }

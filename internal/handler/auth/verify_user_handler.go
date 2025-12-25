@@ -21,7 +21,7 @@ import (
 // @Failure      401    {object}  utils.ErrorResponse
 // @Failure      500    {object}  utils.ErrorResponse
 // @Router       /api/v1/auth/verify [get]
-func (h *AuthHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	token := r.URL.Query().Get("token")
 	if token == "" {

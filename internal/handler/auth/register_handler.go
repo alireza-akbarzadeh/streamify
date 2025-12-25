@@ -1,25 +1,19 @@
 package auth
 
 import (
-	"database/sql"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/techies/streamify/internal/database"
-	"github.com/techies/streamify/internal/handler/token"
 	"github.com/techies/streamify/internal/handler/users"
 	"github.com/techies/streamify/internal/models"
+	"github.com/techies/streamify/internal/service"
 	"github.com/techies/streamify/internal/utils"
-	"github.com/techies/streamify/internal/validation"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // RegisterRequest represents registration payload
 type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=8"`
-	Username string `json:"username" binding:"required,min=3"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+	Username string `json:"username" validate:"required,min=3"`
 }
 
 // ========================
@@ -37,7 +31,7 @@ type RegisterRequest struct {
 // @Failure      409   {object}  utils.ErrorResponse
 // @Failure      500   {object}  utils.ErrorResponse
 // @Router       /api/v1/auth/register [post]
-func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req RegisterRequest
 	if err := utils.ParseJSON(w, r, &req); err != nil {
@@ -45,55 +39,17 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Input Validation (Email, Password, Username)
-	if err := validation.ValidateRegisterInput(req.Username, req.Email, req.Password); err != nil {
-		utils.RespondWithError(w, http.StatusBadRequest, err.Error(), nil)
-		return
-	}
-
-	email := utils.NormalizeEmail(req.Email)
-
-	// Check availability
-	exists, err := h.App.DB.GetUserByEmail(ctx, email)
-	if err != nil {
-		// Log the error and return 500 Internal Server Error
-		utils.RespondWithError(w, http.StatusInternalServerError, "Database error during registration", err)
-		return
-	}
-	if exists.ID != uuid.Nil {
-		utils.RespondWithError(w, http.StatusConflict, "Email already registered", nil)
-		return
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to hash password", err)
-		return
-	}
-
-	// Verification Logic
-	vToken, err := token.GenerateSecureToken(32)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate verification token", err)
-		return
-	}
-	vExpires := time.Now().Add(24 * time.Hour)
-
-	// Create User with NULL profile fields
-	user, err := h.App.DB.CreateUser(ctx, database.CreateUserParams{
-		Username:              req.Username,
-		Email:                 email,
-		PasswordHash:          string(hashedPassword),
-		VerificationToken:     sql.NullString{String: vToken, Valid: true},
-		VerificationExpiresAt: sql.NullTime{Time: vExpires, Valid: true},
-		// All profile fields are explicitly NULL/Valid:false
+	user, appErr := h.Service.Register(ctx, service.RegisterParams{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: req.Password,
 	})
 
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Registration failed", err)
+	if appErr != nil {
+		utils.RespondWithError(w, appErr.Code, appErr.Message, appErr.Err)
 		return
 	}
-	response := users.MapUserToResponse(user)
 
+	response := users.MapUserToResponse(user)
 	utils.RespondWithJSON(w, http.StatusCreated, models.UserResponse(response))
 }

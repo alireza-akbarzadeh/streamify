@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/techies/streamify/internal/database"
 	"github.com/techies/streamify/internal/logger"
 	"github.com/techies/streamify/internal/middleware"
 	"github.com/techies/streamify/internal/models"
+	"github.com/techies/streamify/internal/service"
 	"github.com/techies/streamify/internal/utils"
 )
 
@@ -52,31 +52,20 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 3. Database Execution
-	// Using the *string version of ToNullString
-	err = h.App.DB.UpdateUserProfile(ctx, database.UpdateUserProfileParams{
-		ID:          userID,
-		FirstName:   utils.ToNullString(req.FirstName),
-		LastName:    utils.ToNullString(req.LastName),
-		Bio:         utils.ToNullString(req.Bio),
-		AvatarUrl:   utils.ToNullString(req.AvatarUrl),
-		PhoneNumber: utils.ToNullString(req.PhoneNumber),
+	// 3. Service Call
+	user, appErr := h.Service.UpdateProfile(ctx, service.UpdateProfileParams{
+		UserID:      userID,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Bio:         req.Bio,
+		AvatarUrl:   req.AvatarUrl,
+		PhoneNumber: req.PhoneNumber,
 	})
 
-	if err != nil {
-		logger.Error(ctx, "UpdateProfile: failed to update profile", err, "user_id", userID)
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to update profile", err)
+	if appErr != nil {
+		utils.RespondWithError(w, appErr.Code, appErr.Message, appErr.Err)
 		return
 	}
 
-	// 4. Return Updated State
-	// Re-fetching ensures the client has the absolute 'truth' from the DB
-	updatedUser, err := h.App.DB.GetUserById(ctx, userID)
-	if err != nil {
-		logger.Error(ctx, "UpdateProfile: failed to fetch updated user", err, "user_id", userID)
-		utils.RespondWithJSON(w, http.StatusOK, map[string]string{"message": "Profile updated"})
-		return
-	}
-
-	utils.RespondWithJSON(w, http.StatusOK, models.UserResponse(MapUserToResponse(updatedUser)))
+	utils.RespondWithJSON(w, http.StatusOK, models.UserResponse(MapUserToResponse(user)))
 }

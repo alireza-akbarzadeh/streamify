@@ -25,6 +25,19 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+type AppError struct {
+	Code    int    // HTTP Code
+	Message string // Client-facing message
+	Err     error  // The actual internal error (for logging)
+}
+
+func (e *AppError) Error() string {
+	if e.Err != nil {
+		return fmt.Sprintf("%s: %v", e.Message, e.Err)
+	}
+	return e.Message
+}
+
 // GenerateRandomString returns a securely generated random string of the given length.
 // Returns an error if crypto/rand fails.
 func GenerateRandomString(n int) (string, error) {

@@ -4,10 +4,12 @@ import (
 	"github.com/techies/streamify/internal/app"
 	"github.com/techies/streamify/internal/database"
 	"github.com/techies/streamify/internal/models"
+	"github.com/techies/streamify/internal/service"
 )
 
 type UserHandler struct {
-	App *app.AppConfig
+	App     *app.AppConfig
+	Service *service.UserService
 }
 
 func NewUserHandler(app *app.AppConfig) *UserHandler {

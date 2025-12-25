@@ -1,12 +1,16 @@
 package auth
 
-import "github.com/techies/streamify/internal/app"
+import (
+	"github.com/techies/streamify/internal/app"
+	"github.com/techies/streamify/internal/service"
+)
 
-type AuthHandler struct {
-	App *app.AppConfig
+type Handler struct {
+	App     *app.AppConfig
+	Service *service.AuthService
 }
 
-func NewAuthHandler(app *app.AppConfig) *AuthHandler {
-	return &AuthHandler{App: app}
+func NewAuthHandler(app *app.AppConfig) *Handler {
+	return &Handler{App: app}
 
 }

@@ -1,12 +1,10 @@
 package users
 
 import (
-	"database/sql"
 	"net/http"
 	"strconv"
 
-	"github.com/techies/streamify/internal/database"
-	"github.com/techies/streamify/internal/logger"
+	"github.com/techies/streamify/internal/service"
 	"github.com/techies/streamify/internal/utils"
 )
 
@@ -29,54 +27,31 @@ import (
 func (h *UserHandler) UserList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 1. Get Params using your helper
 	limit := h.parseInt(r.URL.Query().Get("limit"), 20)
 	if limit > 100 {
 		limit = 100
 	}
-
 	offset := h.parseInt(r.URL.Query().Get("offset"), 0)
 
-	username := r.URL.Query().Get("username")
-	email := r.URL.Query().Get("email")
-	phoneNumber := r.URL.Query().Get("phone_number")
-
-	// 2. Prepare Database Arguments
-	arg := database.GetUsersParams{
-		Limit:             int32(limit),
-		Offset:            int32(offset),
-		SearchUsername:    sql.NullString{String: username, Valid: username != ""},
-		SearchEmail:       sql.NullString{String: email, Valid: email != ""},
-		SearchPhoneNumber: sql.NullString{String: phoneNumber, Valid: phoneNumber != ""},
-	}
-
-	// 3. Fetch Data
-	dbUsers, err := h.App.DB.GetUsers(ctx, arg)
-	if err != nil {
-		logger.Error(ctx, "UserList: failed to fetch users", err, "args", arg)
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch users", err)
-		return
-	}
-
-	total, err := h.App.DB.CountUsers(ctx, database.CountUsersParams{
-		SearchUsername:    arg.SearchUsername,
-		SearchEmail:       arg.SearchEmail,
-		SearchPhoneNumber: arg.SearchPhoneNumber,
+	result, appErr := h.Service.ListUsers(ctx, service.ListUsersParams{
+		Limit:       int32(limit),
+		Offset:      int32(offset),
+		Username:    r.URL.Query().Get("username"),
+		Email:       r.URL.Query().Get("email"),
+		PhoneNumber: r.URL.Query().Get("phone_number"),
 	})
-	if err != nil {
-		logger.Error(ctx, "UserList: failed to count users", err, "args", arg)
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to count users", err)
+
+	if appErr != nil {
+		utils.RespondWithError(w, appErr.Code, appErr.Message, appErr.Err)
 		return
 	}
 
-	// 4. Map and Respond
-	// MapUserListToResponse returns []UserResponse, which now matches our struct!
 	utils.RespondWithJSON(w, http.StatusOK, UserListResponse{
-		Users:   MapUserListToResponse(dbUsers),
-		Total:   total,
+		Users:   MapUserListToResponse(result.Users),
+		Total:   result.Total,
 		Limit:   int32(limit),
 		Offset:  int32(offset),
-		HasMore: int64(offset+limit) < total,
+		HasMore: int64(offset+limit) < result.Total,
 	})
 }
 
