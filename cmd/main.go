@@ -6,6 +6,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/techies/streamify/internal/app"
 	"github.com/techies/streamify/internal/handler"
+	"github.com/techies/streamify/internal/jobs"
 	"github.com/techies/streamify/internal/routes"
 	"github.com/techies/streamify/internal/server"
 )
@@ -19,6 +20,8 @@ func bootstrap() error {
 
 	h := handler.NewHandler(appCfg)
 	router := routes.SetupRoutes(h, appCfg)
+	jobs.StartAllJobs(appCfg)
+
 	appCfg.Server.Handler = router
 
 	return server.Run(appCfg.Server)
@@ -37,12 +40,12 @@ func bootstrap() error {
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @host      localhost:8080
-// @BasePath  /api/v1
+// @BasePath  /
 
 // @securityDefinitions.apikey  BearerAuth
 // @in                          header
 // @name                        Authorization
-// @description                 Type "Bearer" followed by a space and then your token.
+// @description                 Please enter token in the format "Bearer <token>"
 
 func main() {
 	_ = godotenv.Load()

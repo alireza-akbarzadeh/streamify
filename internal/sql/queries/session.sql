@@ -15,4 +15,10 @@ DELETE FROM user_sessions WHERE refresh_token = $1;
 -- name: DeleteAllUserSessions :exec
 DELETE FROM user_sessions WHERE user_id = $1;
 
+-- name: GetSessionByID :one
+SELECT * FROM user_sessions WHERE id = $1 LIMIT 1;
+
+-- name: DeleteSessionByID :exec
+DELETE FROM user_sessions WHERE id = $1;
+
 

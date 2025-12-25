@@ -14,11 +14,11 @@ import (
 )
 
 type TokenHandler struct {
-	app *app.AppConfig
+	App *app.AppConfig
 }
 
 func NewTokenHandler(app *app.AppConfig) *TokenHandler {
-	return &TokenHandler{app: app}
+	return &TokenHandler{App: app}
 }
 
 // Token expiration durations
@@ -45,18 +45,17 @@ func GenerateSecureToken(n int) (string, error) {
 // @Produce      json
 // @Success      200  {object}  map[string]string
 // @Failure      401  {object}  utils.ErrorResponse
-// @Router       /auth/refresh [post]  // Remove /api/v1 from here
-
+// @Router       /api/v1/auth/refresh [post]
 func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	// 1. Get refresh token from cookie
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		utils.RespondWithError(w, http.StatusUnauthorized, "Refresh token missing", err)
+		utils.RespondWithError(w, http.StatusUnauthorized, "Refresh token missing", nil)
 		return
 	}
 
 	// 2. Lookup session in DB
-	session, err := h.app.DB.GetSessionByToken(r.Context(), cookie.Value)
+	session, err := h.App.DB.GetSessionByToken(r.Context(), cookie.Value)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusUnauthorized, "Invalid session", err)
 		return
@@ -64,27 +63,20 @@ func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	// 3. Check if session expired
 	if time.Now().After(session.ExpiresAt) {
-		_ = h.app.DB.DeleteSessionByToken(r.Context(), session.RefreshToken)
+		_ = h.App.DB.DeleteSessionByToken(r.Context(), session.RefreshToken)
 		utils.RespondWithError(w, http.StatusUnauthorized, "Session expired", err)
 		return
 	}
 
-	// 4. Generate new access token
-	newAccessToken, err := utils.GenerateToken(session.UserID, AccessTokenTTL, h.app.JWTSecret)
-	if err != nil {
-		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate access token", err)
-		return
-	}
-
-	// 5. Generate new crypto-secure refresh token
+	// 4. Generate new crypto-secure refresh token
 	newRefreshToken, err := GenerateSecureToken(RefreshTokenLen)
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate refresh token", err)
 		return
 	}
 
-	// 6. Rotate session in DB
-	if err := h.app.DB.DeleteSessionByToken(r.Context(), session.RefreshToken); err != nil {
+	// 5. Rotate session in DB
+	if err := h.App.DB.DeleteSessionByToken(r.Context(), session.RefreshToken); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to rotate session", err)
 		return
 	}
@@ -93,7 +85,7 @@ func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	userAgent := r.UserAgent()
 	UserAgent := utils.ToNullString(&userAgent)
 
-	_, err = h.app.DB.CreateSession(r.Context(), database.CreateSessionParams{
+	newSession, err := h.App.DB.CreateSession(r.Context(), database.CreateSessionParams{
 		UserID:       session.UserID,
 		RefreshToken: newRefreshToken,
 		IpAddress:    IpAddress,
@@ -102,6 +94,13 @@ func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to create new session", err)
+		return
+	}
+
+	// 6. Generate new access token
+	newAccessToken, err := utils.GenerateToken(session.UserID, newSession.ID, AccessTokenTTL, h.App.JWTSecret)
+	if err != nil {
+		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to generate access token", err)
 		return
 	}
 
@@ -132,12 +131,25 @@ func (h *TokenHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Tags         Authentication
 // @Produce      json
 // @Success      200  {object}  map[string]string
-// @Router       /auth/logout [post]
+// @Security     BearerAuth
+// @Router       /api/v1/auth/logout [post]
 func (h *TokenHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// 1. Try to invalidate session by sid from JWT
+	sid := middleware.GetSessionID(r.Context())
+	if sid != "" {
+		sessionID, err := uuid.Parse(sid)
+		if err == nil {
+			// Get session to get the refresh token (if we want to be thorough, but we can just delete by ID if we add DeleteSessionByID)
+			// Actually, let's just add DeleteSessionByID query.
+			_ = h.App.DB.DeleteSessionByID(r.Context(), sessionID)
+		}
+	}
+
+	// 2. Also try to clear by refresh_token cookie (for web clients)
 	cookie, err := r.Cookie("refresh_token")
 	if err == nil {
 		// Delete the session from database if cookie exists
-		_ = h.app.DB.DeleteSessionByToken(r.Context(), cookie.Value)
+		_ = h.App.DB.DeleteSessionByToken(r.Context(), cookie.Value)
 	}
 
 	// Clear the cookie in the browser
@@ -181,7 +193,7 @@ func (h *TokenHandler) LogoutAllDevices(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := h.app.DB.DeleteAllUserSessions(r.Context(), userID); err != nil {
+	if err := h.App.DB.DeleteAllUserSessions(r.Context(), userID); err != nil {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to revoke sessions")
 		return
 	}

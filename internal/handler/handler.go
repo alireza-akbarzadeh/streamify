@@ -8,17 +8,17 @@ import (
 )
 
 type Handler struct {
-	app   *app.AppConfig
+	App   *app.AppConfig
 	Token *token.TokenHandler
 	Auth  *auth.AuthHandler
 	User  *users.UserHandler
 }
 
-func NewHandler(app *app.AppConfig) *Handler {
+func NewHandler(appConfig *app.AppConfig) *Handler {
 	return &Handler{
-		app:   app,
-		Token: token.NewTokenHandler(app),
-		Auth:  auth.NewAuthHandler(app),
-		User:  users.NewUserHandler(app),
+		App:   appConfig,
+		Token: token.NewTokenHandler(appConfig),
+		Auth:  auth.NewAuthHandler(appConfig),
+		User:  users.NewUserHandler(appConfig),
 	}
 }

@@ -20,7 +20,7 @@ func (h *Handler) HandleReadyz(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
 	defer cancel()
 
-	if err := h.app.Conn.PingContext(ctx); err != nil {
+	if err := h.App.Conn.PingContext(ctx); err != nil {
 		utils.RespondWithJSON(w, http.StatusServiceUnavailable, map[string]string{
 			"status": "not ready",
 		})

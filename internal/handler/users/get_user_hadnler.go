@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/techies/streamify/internal/logger"
+	"github.com/techies/streamify/internal/models"
 	"github.com/techies/streamify/internal/utils"
 )
 
@@ -17,7 +18,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        id    path      string  true   "User ID (UUID)"
-// @Success      200   {object}  users.UserResponse
+// @Success      200   {object}  models.UserResponse
 // @Failure      400   {object}  utils.ErrorResponse
 // @Failure      404   {object}  utils.ErrorResponse
 // @Failure      500   {object}  utils.ErrorResponse
@@ -33,7 +34,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, err := h.app.DB.GetUserById(ctx, userID)
+	dbUser, err := h.App.DB.GetUserById(ctx, userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Warn(ctx, "GetUser: user not found", "user_id", userID)
@@ -46,5 +47,6 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Info(ctx, "GetUser: user fetched successfully", "user_id", userID)
-	utils.RespondWithJSON(w, http.StatusOK, MapUserToResponse(dbUser))
+	response := MapUserToResponse(dbUser)
+	utils.RespondWithJSON(w, http.StatusOK, models.UserResponse(response))
 }

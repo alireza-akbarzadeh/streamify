@@ -35,8 +35,12 @@ SET first_name = $2,
     phone_number = $7
 WHERE id = $1;
 
--- name: DeleteUser :exec
-DELETE FROM users WHERE id = $1;
+-- name: SoftDeleteUser :exec
+UPDATE users 
+SET 
+    status = 'deleted',
+    deleted_at = NOW()
+WHERE id = $1;
 
 -- name: VerifyUserByToken :one
 UPDATE users
@@ -82,3 +86,9 @@ WHERE
   AND (sqlc.narg('search_email')::text IS NULL OR email ILIKE '%' || sqlc.narg('search_email') || '%')
   AND (sqlc.narg('search_phone_number')::text IS NULL OR phone_number ILIKE '%' || sqlc.narg('search_phone_number') || '%');
 
+
+
+-- name: PermanentlyDeleteOldSoftDeletedUsers :exec
+DELETE FROM users
+WHERE status = 'deleted'
+  AND deleted_at <= NOW() - INTERVAL '40 days';

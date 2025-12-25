@@ -5,8 +5,11 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"github.com/techies/streamify/internal/database"
 	"github.com/techies/streamify/internal/utils"
 )
 
@@ -16,11 +19,18 @@ const (
 	UserIDKey    contextKey = "user_id"
 	UserEmailKey contextKey = "user_email"
 	UserRoleKey  contextKey = "user_role" // Added typed key for roles
+	SessionIDKey contextKey = "session_id"
 )
 
 // GetUserID retrieves the user ID from context
 func GetUserID(ctx context.Context) string {
 	id, _ := ctx.Value(UserIDKey).(string)
+	return id
+}
+
+// GetSessionID retrieves the session ID from context
+func GetSessionID(ctx context.Context) string {
+	id, _ := ctx.Value(SessionIDKey).(string)
 	return id
 }
 
@@ -31,7 +41,7 @@ func GetUserRole(ctx context.Context) string {
 }
 
 // AuthMiddleware validates JWT and injects user info into context
-func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
+func AuthMiddleware(db *database.Queries, jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authHeader := r.Header.Get("Authorization")
@@ -84,6 +94,20 @@ func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
 				return
 			}
 			ctx = context.WithValue(ctx, UserIDKey, sub)
+
+			// SessionID (sid) is used for server-side invalidation (logout)
+			if sid, ok := claims["sid"].(string); ok && sid != "" {
+				sessionID, err := uuid.Parse(sid)
+				if err == nil {
+					// Verify session exists and is not expired
+					session, err := db.GetSessionByID(ctx, sessionID)
+					if err != nil || time.Now().After(session.ExpiresAt) {
+						utils.RespondWithError(w, http.StatusUnauthorized, "Session is invalid or expired", nil)
+						return
+					}
+					ctx = context.WithValue(ctx, SessionIDKey, sid)
+				}
+			}
 
 			// Optional fields
 			if email, ok := claims["email"].(string); ok {

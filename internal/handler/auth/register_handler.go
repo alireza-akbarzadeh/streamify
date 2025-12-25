@@ -9,6 +9,7 @@ import (
 	"github.com/techies/streamify/internal/database"
 	"github.com/techies/streamify/internal/handler/token"
 	"github.com/techies/streamify/internal/handler/users"
+	"github.com/techies/streamify/internal/models"
 	"github.com/techies/streamify/internal/utils"
 	"github.com/techies/streamify/internal/validation"
 	"golang.org/x/crypto/bcrypt"
@@ -35,7 +36,7 @@ type RegisterRequest struct {
 // @Failure      400   {object}  utils.ErrorResponse
 // @Failure      409   {object}  utils.ErrorResponse
 // @Failure      500   {object}  utils.ErrorResponse
-// @Router       /auth/register [post]
+// @Router       /api/v1/auth/register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var req RegisterRequest
@@ -53,7 +54,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	email := utils.NormalizeEmail(req.Email)
 
 	// Check availability
-	exists, err := h.app.DB.GetUserByEmail(ctx, email)
+	exists, err := h.App.DB.GetUserByEmail(ctx, email)
 	if err != nil {
 		// Log the error and return 500 Internal Server Error
 		utils.RespondWithError(w, http.StatusInternalServerError, "Database error during registration", err)
@@ -79,7 +80,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	vExpires := time.Now().Add(24 * time.Hour)
 
 	// Create User with NULL profile fields
-	user, err := h.app.DB.CreateUser(ctx, database.CreateUserParams{
+	user, err := h.App.DB.CreateUser(ctx, database.CreateUserParams{
 		Username:              req.Username,
 		Email:                 email,
 		PasswordHash:          string(hashedPassword),
@@ -92,6 +93,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		utils.RespondWithError(w, http.StatusInternalServerError, "Registration failed", err)
 		return
 	}
+	response := users.MapUserToResponse(user)
 
-	utils.RespondWithJSON(w, http.StatusCreated, users.MapUserToResponse(user))
+	utils.RespondWithJSON(w, http.StatusCreated, models.UserResponse(response))
 }

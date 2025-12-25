@@ -21,7 +21,7 @@ import (
 // @Param        username      query     string  false  "Search by username (partial match)"
 // @Param        email         query     string  false  "Search by email (partial match)"
 // @Param        phone_number  query     string  false  "Search by phone number (partial match)"
-// @Success      200       {object}  users.UserListResponse
+// @Success      200       {object}  UserListResponse
 // @Failure      401       {object}  utils.ErrorResponse
 // @Failure      500       {object}  utils.ErrorResponse
 // @Security     BearerAuth
@@ -51,14 +51,14 @@ func (h *UserHandler) UserList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 3. Fetch Data
-	dbUsers, err := h.app.DB.GetUsers(ctx, arg)
+	dbUsers, err := h.App.DB.GetUsers(ctx, arg)
 	if err != nil {
 		logger.Error(ctx, "UserList: failed to fetch users", err, "args", arg)
 		utils.RespondWithError(w, http.StatusInternalServerError, "Failed to fetch users", err)
 		return
 	}
 
-	total, err := h.app.DB.CountUsers(ctx, database.CountUsersParams{
+	total, err := h.App.DB.CountUsers(ctx, database.CountUsersParams{
 		SearchUsername:    arg.SearchUsername,
 		SearchEmail:       arg.SearchEmail,
 		SearchPhoneNumber: arg.SearchPhoneNumber,
