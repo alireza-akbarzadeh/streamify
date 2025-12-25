@@ -92,3 +92,37 @@ WHERE
 DELETE FROM users
 WHERE status = 'deleted'
   AND deleted_at <= NOW() - INTERVAL '40 days';
+
+-- name: DemoteAdminToUser :exec
+UPDATE users
+SET
+    role = 'user',
+    updated_at = NOW()
+WHERE role = 'admin'
+  AND status != 'deleted';
+
+
+-- name: UpdateUserRole :exec
+UPDATE users
+SET
+    role = $2,
+    updated_at = NOW()
+WHERE id = $1
+  AND status != 'deleted'
+  AND role != 'owner';  
+
+
+-- name: PromoteUsersToCustomer :exec
+UPDATE users
+SET
+    role = 'customer',
+    updated_at = NOW()
+WHERE role = 'user'
+  AND status != 'deleted';  
+
+
+-- name: DeleteOldDeletedNonAdmins :exec
+DELETE FROM users
+WHERE status = 'deleted'
+  AND role NOT IN ('admin', 'owner')
+  AND deleted_at <= NOW() - INTERVAL '40 days';

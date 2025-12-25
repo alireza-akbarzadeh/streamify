@@ -32,9 +32,12 @@ func MapUserToResponse(u database.User) models.UserResponse {
 		Email:       u.Email,
 		IsVerified:  u.IsVerified,
 		CreatedAt:   u.CreatedAt,
+		Status:      u.Status,
 		UpdatedAt:   u.UpdatedAt,
 		Bio:         u.Bio.String,
 		PhoneNumber: u.PhoneNumber.String,
+		FirstName:   u.FirstName.String,
+		LastName:    u.LastName.String,
 		AvatarUrl:   u.AvatarUrl.String,
 	}
 }

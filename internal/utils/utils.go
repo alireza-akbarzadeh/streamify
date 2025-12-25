@@ -189,3 +189,10 @@ func GetClientIP(r *http.Request) string {
 	}
 	return ip
 }
+
+func GetParam(r *http.Request, key string) string {
+	if r == nil || key == "" {
+		return ""
+	}
+	return chi.URLParam(r, key)
+}

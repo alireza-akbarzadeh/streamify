@@ -32,7 +32,7 @@ func NewHandler(appConfig *app.AppConfig) *Handler {
 	h.Service.Auth = authService
 	h.Service.User = userService
 
-	// Pass services to handlers if needed, or keep them accessible via h.Service
+	// Pass services to handlers if needed or keep them accessible via h.Service
 	h.Auth.Service = authService
 	h.User.Service = userService
 

@@ -138,3 +138,39 @@ func (s *UserService) ListUsers(ctx context.Context, params ListUsersParams) (Li
 		Total: total,
 	}, nil
 }
+
+func (s *UserService) UpdateUserRole(
+	ctx context.Context,
+	userID uuid.UUID,
+	role database.UserRole,
+) *utils.AppError {
+
+	// 1️⃣ Validate role (domain rule)
+	switch role {
+	case database.UserRoleUser,
+		database.UserRoleCustomer,
+		database.UserRoleAdmin:
+		// owner intentionally excluded
+	default:
+		return &utils.AppError{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid or forbidden user role",
+		}
+	}
+
+	// 2️⃣ Execute DB update
+	err := s.DB.UpdateUserRole(ctx, database.UpdateUserRoleParams{
+		ID:   userID,
+		Role: role,
+	})
+
+	if err != nil {
+		return &utils.AppError{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to update user role",
+			Err:     err,
+		}
+	}
+
+	return nil
+}
