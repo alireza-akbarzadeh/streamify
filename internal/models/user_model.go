@@ -25,6 +25,17 @@ type UserResponse struct {
 	Role        database.UserRole `json:"role"`
 }
 
+type UpdateSongRequest struct {
+	Title       *string `json:"title" validate:"omitempty,min=1"`
+	ArtistID    *string `json:"artist_id" validate:"omitempty,uuid4"`
+	AlbumID     *string `json:"album_id" validate:"omitempty,uuid4"`
+	Genre       *string `json:"genre" validate:"omitempty,min=1"`
+	URL         *string `json:"url" validate:"omitempty,url"`
+	Duration    *int    `json:"duration" validate:"omitempty,gte=0"`
+	ReleaseDate *string `json:"release_date" validate:"omitempty,datetime=2006-01-02"`
+	Bitrate     *int    `json:"bitrate" validate:"omitempty,gte=0"`
+}
+
 func NewUserResponse(u *database.User) *UserResponse {
 	return &UserResponse{
 		ID:          u.ID,

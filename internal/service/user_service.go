@@ -174,3 +174,35 @@ func (s *UserService) UpdateUserRole(
 
 	return nil
 }
+
+// SoftDeleteUser performs a soft delete of the user with the given ID
+func (s *UserService) SoftDeleteUser(ctx context.Context, userID uuid.UUID) *utils.AppError {
+	err := s.DB.SoftDeleteUser(ctx, userID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return &utils.AppError{
+				Code:    http.StatusNotFound,
+				Message: "User not found",
+			}
+		}
+		return &utils.AppError{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to soft-delete user",
+			Err:     err,
+		}
+	}
+	return nil
+}
+
+// PermanentlyDeleteOldSoftDeletedUsers permanently deletes users who were soft-deleted and meet the criteria
+func (s *UserService) PermanentlyDeleteOldSoftDeletedUsers(ctx context.Context) *utils.AppError {
+	err := s.DB.PermanentlyDeleteOldSoftDeletedUsers(ctx)
+	if err != nil {
+		return &utils.AppError{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to permanently delete old soft-deleted users",
+			Err:     err,
+		}
+	}
+	return nil
+}

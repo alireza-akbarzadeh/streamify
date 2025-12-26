@@ -2,7 +2,6 @@ package users
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/techies/streamify/internal/service"
 	"github.com/techies/streamify/internal/utils"
@@ -27,11 +26,11 @@ import (
 func (h *UserHandler) UserList(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	limit := h.parseInt(r.URL.Query().Get("limit"), 20)
+	limit := utils.ParseInt(r.URL.Query().Get("limit"), 20)
 	if limit > 100 {
 		limit = 100
 	}
-	offset := h.parseInt(r.URL.Query().Get("offset"), 0)
+	offset := utils.ParseInt(r.URL.Query().Get("offset"), 0)
 
 	result, appErr := h.Service.ListUsers(ctx, service.ListUsersParams{
 		Limit:       int32(limit),
@@ -53,16 +52,4 @@ func (h *UserHandler) UserList(w http.ResponseWriter, r *http.Request) {
 		Offset:  int32(offset),
 		HasMore: int64(offset+limit) < result.Total,
 	})
-}
-
-// Helper to keep the main handler logic clean
-func (h *UserHandler) parseInt(value string, fallback int) int {
-	if value == "" {
-		return fallback
-	}
-	res, err := strconv.Atoi(value)
-	if err != nil || res < 0 {
-		return fallback
-	}
-	return res
 }
