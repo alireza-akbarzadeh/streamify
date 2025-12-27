@@ -12,11 +12,11 @@ import (
 // CreateSongHandler handles creating a new song
 // @Summary      Create a new song
 // @Description  Creates a new song in the system
+// @Security     BearerAuth
 // @Tags         Songs
 // @Accept       json
 // @Produce      json
 // @Param        song  body      service.CreateSongParams  true  "Song data"
-// @Success      201   {object}  models.SongResponse
 // @Failure      400   {object}  utils.ErrorResponse  "Invalid input"
 // @Failure      500   {object}  utils.ErrorResponse  "Failed to create song"
 // @Router       /api/v1/songs [post]

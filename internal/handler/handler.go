@@ -25,6 +25,7 @@ type Handler struct {
 func NewHandler(appConfig *app.AppConfig) *Handler {
 	authService := service.NewAuthService(appConfig.DB, appConfig)
 	userService := service.NewUserService(appConfig.DB, appConfig)
+	songService := service.NewSongService(appConfig.DB, appConfig)
 
 	h := &Handler{
 		App:   appConfig,
@@ -35,11 +36,12 @@ func NewHandler(appConfig *app.AppConfig) *Handler {
 	}
 	h.Service.Auth = authService
 	h.Service.User = userService
+	h.Service.Song = songService
 
 	// Pass services to handlers if needed or keep them accessible via h.Service
 	h.Auth.Service = authService
 	h.User.Service = userService
-	h.Song.Service = h.Service.Song
+	h.Song.Service = songService
 
 	return h
 }

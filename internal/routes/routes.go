@@ -76,7 +76,7 @@ func SetupRoutes(h *handler.Handler, cfg *app.AppConfig) http.Handler {
 
 		// Authentication Domain
 		r.Mount("/auth", authRouter(h, cfg))
-		r.Mount("/song", songRouter(h))
+		r.Mount("/songs", songRouter(h))
 		// Protected Domain
 		r.Group(func(r chi.Router) {
 			r.Use(internalMiddleware.AuthMiddleware(h.App.DB, cfg.JWTSecret))
