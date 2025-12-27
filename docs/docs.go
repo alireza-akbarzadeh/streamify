@@ -274,6 +274,261 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/songs": {
+            "get": {
+                "description": "Get a paginated list of songs with optional filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "List songs",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Max results per page (default 20, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination (default 0)",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by song title",
+                        "name": "title",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by artist UUID",
+                        "name": "artist_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by genre",
+                        "name": "genre",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_handler_songs.SongListResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates a new song in the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "Create a new song",
+                "parameters": [
+                    {
+                        "description": "Song data",
+                        "name": "song",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_service.CreateSongParams"
+                        }
+                    }
+                ],
+                "responses": {
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to create song",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/songs/{id}": {
+            "get": {
+                "description": "Get a single song by its UUID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "Get song by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Song ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_models.SongResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid song ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Song not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to fetch song",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update a song's details by its ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "Update a song",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Song ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Song update payload",
+                        "name": "song",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_models.UpdateSongRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_models.SongResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Soft-delete a song by its ID",
+                "tags": [
+                    "Songs"
+                ],
+                "summary": "Delete a song",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Song ID (UUID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Song deleted successfully"
+                    },
+                    "400": {
+                        "description": "Invalid song ID format",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Song not found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete song",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/users": {
             "get": {
                 "security": [
@@ -339,40 +594,6 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/users/old-soft-deleted": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Removes from the database all users who were previously soft-deleted and are eligible for permanent deletion (e.g., deleted for a certain period).",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Users"
-                ],
-                "summary": "Permanently delete old soft-deleted users",
-                "responses": {
-                    "200": {
-                        "description": "Old soft-deleted users permanently deleted successfully",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Failed to permanently delete old soft-deleted users",
                         "schema": {
                             "$ref": "#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse"
                         }
@@ -731,6 +952,80 @@ const docTemplate = `{
                 "UserRoleOwner"
             ]
         },
+        "github_com_techies_streamify_internal_models.SongResponse": {
+            "type": "object",
+            "properties": {
+                "album_id": {
+                    "type": "string"
+                },
+                "artist_id": {
+                    "type": "string"
+                },
+                "bitrate": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_techies_streamify_internal_models.UpdateSongRequest": {
+            "type": "object",
+            "properties": {
+                "album_id": {
+                    "type": "string"
+                },
+                "artist_id": {
+                    "type": "string"
+                },
+                "bitrate": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "duration": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "genre": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_techies_streamify_internal_models.UserResponse": {
             "type": "object",
             "properties": {
@@ -774,6 +1069,36 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_techies_streamify_internal_service.CreateSongParams": {
+            "type": "object",
+            "required": [
+                "artistID",
+                "duration",
+                "title",
+                "url"
+            ],
+            "properties": {
+                "albumID": {
+                    "type": "string"
+                },
+                "artistID": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "url": {
                     "type": "string"
                 }
             }
@@ -831,6 +1156,29 @@ const docTemplate = `{
                 "username": {
                     "type": "string",
                     "minLength": 3
+                }
+            }
+        },
+        "internal_handler_songs.SongListResponse": {
+            "type": "object",
+            "properties": {
+                "has_more": {
+                    "type": "boolean"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "songs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_techies_streamify_internal_models.SongResponse"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

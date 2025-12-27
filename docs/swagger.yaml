@@ -12,6 +12,56 @@ definitions:
     - UserRoleCustomer
     - UserRoleAdmin
     - UserRoleOwner
+  github_com_techies_streamify_internal_models.SongResponse:
+    properties:
+      album_id:
+        type: string
+      artist_id:
+        type: string
+      bitrate:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      duration:
+        type: integer
+      genre:
+        type: string
+      id:
+        type: string
+      release_date:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      url:
+        type: string
+    type: object
+  github_com_techies_streamify_internal_models.UpdateSongRequest:
+    properties:
+      album_id:
+        type: string
+      artist_id:
+        type: string
+      bitrate:
+        minimum: 0
+        type: integer
+      duration:
+        minimum: 0
+        type: integer
+      genre:
+        minLength: 1
+        type: string
+      release_date:
+        type: string
+      title:
+        minLength: 1
+        type: string
+      url:
+        type: string
+    type: object
   github_com_techies_streamify_internal_models.UserResponse:
     properties:
       avatar_url:
@@ -42,6 +92,27 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  github_com_techies_streamify_internal_service.CreateSongParams:
+    properties:
+      albumID:
+        type: string
+      artistID:
+        type: string
+      duration:
+        minimum: 0
+        type: integer
+      genre:
+        type: string
+      title:
+        type: string
+      url:
+        type: string
+    required:
+    - artistID
+    - duration
+    - title
+    - url
     type: object
   github_com_techies_streamify_internal_utils.ErrorResponse:
     properties:
@@ -80,6 +151,21 @@ definitions:
     - email
     - password
     - username
+    type: object
+  internal_handler_songs.SongListResponse:
+    properties:
+      has_more:
+        type: boolean
+      limit:
+        type: integer
+      offset:
+        type: integer
+      songs:
+        items:
+          $ref: '#/definitions/github_com_techies_streamify_internal_models.SongResponse'
+        type: array
+      total:
+        type: integer
     type: object
   internal_handler_users.UpdateProfileRequest:
     properties:
@@ -298,6 +384,172 @@ paths:
       summary: Verify user email token
       tags:
       - Authentication
+  /api/v1/songs:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of songs with optional filters
+      parameters:
+      - description: Max results per page (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination (default 0)
+        in: query
+        name: offset
+        type: integer
+      - description: Filter by song title
+        in: query
+        name: title
+        type: string
+      - description: Filter by artist UUID
+        in: query
+        name: artist_id
+        type: string
+      - description: Filter by genre
+        in: query
+        name: genre
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_handler_songs.SongListResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+      summary: List songs
+      tags:
+      - Songs
+    post:
+      consumes:
+      - application/json
+      description: Creates a new song in the system
+      parameters:
+      - description: Song data
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techies_streamify_internal_service.CreateSongParams'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "500":
+          description: Failed to create song
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+      summary: Create a new song
+      tags:
+      - Songs
+  /api/v1/songs/{id}:
+    delete:
+      description: Soft-delete a song by its ID
+      parameters:
+      - description: Song ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: Song deleted successfully
+        "400":
+          description: Invalid song ID format
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "404":
+          description: Song not found
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "500":
+          description: Failed to delete song
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a song
+      tags:
+      - Songs
+    get:
+      consumes:
+      - application/json
+      description: Get a single song by its UUID
+      parameters:
+      - description: Song ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_models.SongResponse'
+        "400":
+          description: Invalid song ID format
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "404":
+          description: Song not found
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "500":
+          description: Failed to fetch song
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+      summary: Get song by ID
+      tags:
+      - Songs
+    put:
+      consumes:
+      - application/json
+      description: Update a song's details by its ID
+      parameters:
+      - description: Song ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Song update payload
+        in: body
+        name: song
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_techies_streamify_internal_models.UpdateSongRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_models.SongResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a song
+      tags:
+      - Songs
   /api/v1/users:
     get:
       consumes:
@@ -557,28 +809,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Unlock user account
-      tags:
-      - Users
-  /api/v1/users/old-soft-deleted:
-    delete:
-      description: Removes from the database all users who were previously soft-deleted
-        and are eligible for permanent deletion (e.g., deleted for a certain period).
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Old soft-deleted users permanently deleted successfully
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "500":
-          description: Failed to permanently delete old soft-deleted users
-          schema:
-            $ref: '#/definitions/github_com_techies_streamify_internal_utils.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Permanently delete old soft-deleted users
       tags:
       - Users
 securityDefinitions:

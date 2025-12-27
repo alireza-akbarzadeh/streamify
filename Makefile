@@ -21,8 +21,11 @@ COVERAGE_HTML := $(COVERAGE_DIR)/coverage.html
 
 # Build the app
 build:
-	@mkdir -p $(BIN_DIR)
-	go build -o $(BIN_DIR)/$(APP_NAME) cmd/api/main.go
+	@mkdir -p dist
+	go build -o dist/$(APP_NAME) cmd/api/main.go
+
+release:
+	goreleaser release --clean
 
 swagger:
 	swag init --parseDependency --parseInternal -g cmd/api/main.go

@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,6 +38,25 @@ func (e *AppError) Error() string {
 		return fmt.Sprintf("%s: %v", e.Message, e.Err)
 	}
 	return e.Message
+}
+
+// ToNullInt32 converts a *int to sql.NullInt32
+func ToNullInt32(i *int) sql.NullInt32 {
+	if i != nil {
+		return sql.NullInt32{Int32: int32(*i), Valid: true}
+	}
+	return sql.NullInt32{Valid: false}
+}
+
+func ToNullUUIDFromString(s string) uuid.NullUUID {
+	if s == "" {
+		return uuid.NullUUID{}
+	}
+	id, err := uuid.Parse(s)
+	if err != nil {
+		return uuid.NullUUID{}
+	}
+	return uuid.NullUUID{UUID: id, Valid: true}
 }
 
 // GenerateRandomString returns a securely generated random string of the given length.
@@ -183,6 +203,13 @@ func ToNullString(s *string) sql.NullString {
 	}
 }
 
+func ToNullUUID(u *uuid.UUID) uuid.NullUUID {
+	if u != nil {
+		return uuid.NullUUID{UUID: *u, Valid: true}
+	}
+	return uuid.NullUUID{}
+}
+
 // normalizeIP strips port if present
 func NormalizeIP(addr string) string {
 	host, _, err := net.SplitHostPort(addr)
@@ -211,4 +238,58 @@ func GetParam(r *http.Request, key string) string {
 		return ""
 	}
 	return chi.URLParam(r, key)
+}
+
+func UuidPtr(n uuid.NullUUID) *uuid.UUID {
+	if n.Valid {
+		return &n.UUID
+	}
+	return nil
+}
+
+func StrPtr(n sql.NullString) *string {
+	if n.Valid {
+		return &n.String
+	}
+	return nil
+}
+
+func IntPtr(n sql.NullInt32) *int {
+	if n.Valid {
+		i := int(n.Int32)
+		return &i
+	}
+	return nil
+}
+
+func TimePtr(n sql.NullTime) *time.Time {
+	if n.Valid {
+		return &n.Time
+	}
+	return nil
+}
+
+// ParseInt Helper to keep the main handler logic clean
+func ParseInt(value string, fallback int) int {
+	if value == "" {
+		return fallback
+	}
+	res, err := strconv.Atoi(value)
+	if err != nil || res < 0 {
+		return fallback
+	}
+	return res
+}
+
+func ParseUUIDPtr(value *string) (*uuid.UUID, error) {
+	if value == nil {
+		return nil, nil
+	}
+
+	id, err := uuid.Parse(*value)
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
 }
